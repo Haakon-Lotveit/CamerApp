@@ -1,6 +1,7 @@
 package no.uib.CamerApp;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -14,6 +15,12 @@ import android.os.Environment;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 
 public class PhotoHandler implements PictureCallback {
 
@@ -61,7 +68,20 @@ private ImageView imageView;
       bmp = BitmapFactory.decodeByteArray(data, 0, data.length, options);
 //      ImageView imageView = new ImageView(context);  
       imageView.setImageBitmap(bmp);
-           
+
+      
+      
+      
+      //SCP to server
+      // Need new thread. Or else NetworkOnMainThreadException
+      new SFTPTask().execute(pictureFile);
+      
+//      new Thread(new Runnable() {
+//          public void run() {
+//        	  sendToServer(pictureFile);
+//          }
+//      }).start();
+      
     } catch (Exception error) {
       Log.d(MakePhotoActivity.DEBUG_TAG, "File" + filename + "not saved: "
           + error.getMessage());
@@ -70,7 +90,9 @@ private ImageView imageView;
     }
   }
 
-  private File getDir() {
+
+
+private File getDir() {
     File sdDir = Environment
       .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
     Toast.makeText(context, sdDir.getAbsolutePath(),
