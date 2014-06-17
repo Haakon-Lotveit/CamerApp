@@ -1,7 +1,6 @@
 package no.uib.CamerApp;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
@@ -20,6 +19,8 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -32,18 +33,25 @@ public class MakePhotoActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		//Remove title bar
+	    this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+	    //Remove notification bar
+	    this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		
 		setContentView(R.layout.main);
 		this.imageView = (ImageView)this.findViewById(R.id.imageView1);
 		// Test to see if GL_INVALID_oPERATION goes away
 		//    imageView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-//		camera = Camera.open();
+		//		camera = Camera.open();
 		// do we have a camera?
 		if (!getPackageManager()
 				.hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
 			Toast.makeText(this, "No camera on this device", Toast.LENGTH_LONG)
 			.show();
 		} else {
-//			cameraId = findBackFacingCamera();
+			//			cameraId = findBackFacingCamera();
 			Toast.makeText(this, "You got cameraaaaaas", Toast.LENGTH_LONG)
 			.show();
 			if (cameraId < 0) {
@@ -65,24 +73,26 @@ public class MakePhotoActivity extends Activity {
 		//		    Thread.currentThread().interrupt();
 		//		}
 		//	 camera = Camera.open();
-//		PhotoHandler pHandler = new PhotoHandler(getApplicationContext(), this.imageView);
-//		camera.takePicture(null, null,
-//				pHandler);
+		//		PhotoHandler pHandler = new PhotoHandler(getApplicationContext(), this.imageView);
+		//		camera.takePicture(null, null,
+		//				pHandler);
 		//    camera.release();
 		//    camera.stopPreview();
-//		camera.takePicture(shutter, raw, jpeg);
-//		Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//	    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-//	        startActivityForResult(takePictureIntent, 1);
-//	    }
+		//		camera.takePicture(shutter, raw, jpeg);
+		//		Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+		//	    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+		//	        startActivityForResult(takePictureIntent, 1);
+		//	    }
 		dispatchTakePictureIntent();
-		
-		File[] listFiles = this.getFilesDir().listFiles();
+
+		//		File[] listFiles = this.getFilesDir().listFiles();
+		File[] listFiles = this.getExternalFilesDir(Environment.DIRECTORY_PICTURES).listFiles();
 		Toast.makeText(this, "numer of files: " + listFiles.length, Toast.LENGTH_LONG)
 		.show();
 		if( listFiles.length > 0 ) {
 			for(int i = 0 ; i < listFiles.length ; i++ ) {
 				new SFTPTask().execute(listFiles[i]);
+				//				listFiles[i].delete();
 			}
 		} else {
 			Toast.makeText(this, "files folder empty",
@@ -107,13 +117,13 @@ public class MakePhotoActivity extends Activity {
 		return cameraId;
 	}
 
-		@Override
-		protected void onResume() {
-			super.onResume();
-	
-//			camera = Camera.open();
-	
-		}
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		//			camera = Camera.open();
+
+	}
 
 	@Override
 	protected void onPause() {
@@ -126,22 +136,27 @@ public class MakePhotoActivity extends Activity {
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		//		new SFTPTask().execute(listFiles[i]);
+		//		new PhotoWriteTask().execute(data, this);
+
 		InputStream stream = null;
 		Bitmap bitmap = null;
 		if (requestCode == 1 && resultCode == Activity.RESULT_OK)
 			try {
-//				 Bundle extras = data.getExtras();
-//			        Bitmap imageBitmap = (Bitmap) extras.get("data");
-//			        mImageView.setImageBitmap(imageBitmap);
+				//				 Bundle extras = data.getExtras();
+				//			        Bitmap imageBitmap = (Bitmap) extras.get("data");
+				//			        mImageView.setImageBitmap(imageBitmap);
 				// recyle unused bitmaps
 				if (bitmap != null) {
 					bitmap.recycle();
 				}
-//				stream = getContentResolver().openInputStream(data.getData());
-//				bitmap = BitmapFactory.decodeStream(stream);
-				Bundle extras = data.getExtras();
-				bitmap = (Bitmap) extras.get("data");
-				imageView.setImageBitmap(bitmap);
+				//				stream = getContentResolver().openInputStream(data.getData());
+				//				bitmap = BitmapFactory.decodeStream(stream);
+				if(data != null) {
+					Bundle extras = data.getExtras();
+					bitmap = (Bitmap) extras.get("data");
+					imageView.setImageBitmap(bitmap);
+				}
 			} finally {
 
 				if (stream != null) {
@@ -154,48 +169,51 @@ public class MakePhotoActivity extends Activity {
 			}
 
 	}
-	
+
 	static final int REQUEST_TAKE_PHOTO = 1;
 	private void dispatchTakePictureIntent() {
-	    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-	    // Ensure that there's a camera activity to handle the intent
-	    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-	        // Create the File where the photo should go
-	        File photoFile = null;
-	        try {
-	            photoFile = createImageFile();
-	        } catch (IOException ex) {
-	            // Error occurred while creating the File
-	            ex.printStackTrace();
-	        }
-	        // Continue only if the File was successfully created
-	        if (photoFile != null) {
-	            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-	                    Uri.fromFile(photoFile));
-	            startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-	        }
-	    }
+		Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+		// Ensure that there's a camera activity to handle the intent
+		if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+			// Create the File where the photo should go
+			File photoFile = null;
+			try {
+				photoFile = createImageFile();
+			} catch (IOException ex) {
+				// Error occurred while creating the File
+				ex.printStackTrace();
+			}
+			// Continue only if the File was successfully created
+			if (photoFile != null) {
+				takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+						Uri.fromFile(photoFile));
+				startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+				//				startActivityForResult(takePictureIntent, CAPTURE_IMAGE);
+			}
+		}
 	}
-	
-	private File createImageFile() throws IOException {
-		String mCurrentPhotoPath;
-	    // Create an image file name
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyymmddhhmmss");
-	    String date = dateFormat.format(new Date());
-	    String imageFileName = "Picture_" + date + ".jpg";
-//	    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-//	    String imageFileName = "JPEG_" + timeStamp + "_";
-//	    File storageDir = Environment.getExternalStoragePublicDirectory(
-//	            Environment.DIRECTORY_PICTURES);
-	    File storageDir = this.getFilesDir();
-	    File image = File.createTempFile(
-	        imageFileName,  /* prefix */
-	        ".jpg",         /* suffix */
-	        storageDir      /* directory */
-	    );
 
-	    // Save a file: path for use with ACTION_VIEW intents
-	    mCurrentPhotoPath = "file:" + image.getAbsolutePath();
-	    return image;
+	private File createImageFile() throws IOException {
+		//		String mCurrentPhotoPath;
+		// Create an image file name
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyymmddhhmmss");
+		//		DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.DEFAULT);
+		String date = dateFormat.format(new Date());
+		String imageFileName = "Picture_" + date;
+		//	    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+		//	    String imageFileName = "JPEG_" + timeStamp + "_";
+		//	    File storageDir = Environment.getExternalStoragePublicDirectory(
+		//	            Environment.DIRECTORY_PICTURES);
+		//		ile storageDir = this.getFilesDir();
+		File storageDir = this.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+		File image = File.createTempFile(
+				imageFileName,  /* prefix */
+				".jpg",         /* suffix */
+				storageDir      /* directory */
+				);
+		//		image.createNewFile();
+		// Save a file: path for use with ACTION_VIEW intents
+		//	    mCurrentPhotoPath = "file:" + image.getAbsolutePath();
+		return image;
 	}
 }
