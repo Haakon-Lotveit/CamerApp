@@ -8,7 +8,9 @@ import java.util.Date;
 
 import no.uib.CamerApp.tasks.SFTPTask;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.hardware.Camera;
@@ -24,15 +26,23 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+
+
 public class MakePhotoActivity extends Activity {
 	protected final static String DEBUG_TAG = "MakePhotoActivity";
 	private Camera camera;
 	private int cameraId = 0;
 	private ImageView imageView;
+	private String user;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		// Get userID from sharedpreferences
+		SharedPreferences settings = getSharedPreferences("settings", Context.MODE_PRIVATE);
+		this.user = settings.getString("userID", "-1");
+
 		
 		//Remove title bar
 	    this.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -46,8 +56,7 @@ public class MakePhotoActivity extends Activity {
 		//    imageView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 		//		camera = Camera.open();
 		// do we have a camera?
-		if (!getPackageManager()
-				.hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+		if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
 			Toast.makeText(this, "No camera on this device", Toast.LENGTH_LONG)
 			.show();
 		} else {
@@ -86,18 +95,18 @@ public class MakePhotoActivity extends Activity {
 		dispatchTakePictureIntent();
 
 		//		File[] listFiles = this.getFilesDir().listFiles();
-		File[] listFiles = this.getExternalFilesDir(Environment.DIRECTORY_PICTURES).listFiles();
-		Toast.makeText(this, "numer of files: " + listFiles.length, Toast.LENGTH_LONG)
-		.show();
-		if( listFiles.length > 0 ) {
-			for(int i = 0 ; i < listFiles.length ; i++ ) {
-				new SFTPTask().execute(listFiles[i]);
-				//				listFiles[i].delete();
-			}
-		} else {
-			Toast.makeText(this, "files folder empty",
-					Toast.LENGTH_LONG).show();
-		}
+//		File[] listFiles = this.getExternalFilesDir(Environment.DIRECTORY_PICTURES).listFiles();
+//		Toast.makeText(this, "numer of files: " + listFiles.length, Toast.LENGTH_LONG)
+//		.show();
+//		if( listFiles.length > 0 ) {
+//			for(int i = 0 ; i < listFiles.length ; i++ ) {
+//				new SFTPTask(user).execute(listFiles[i]);
+//				//				listFiles[i].delete();
+//			}
+//		} else {
+//			Toast.makeText(this, "files folder empty",
+//					Toast.LENGTH_LONG).show();
+//		}
 
 	}
 
@@ -167,7 +176,22 @@ public class MakePhotoActivity extends Activity {
 					}
 				}
 			}
+		transferData();
+	}
 
+	private void transferData() {
+		File[] listFiles = this.getExternalFilesDir(Environment.DIRECTORY_PICTURES).listFiles();
+		Toast.makeText(this, "numer of files: " + listFiles.length, Toast.LENGTH_LONG)
+		.show();
+		if( listFiles.length > 0 ) {
+			for(int i = 0 ; i < listFiles.length ; i++ ) {
+				new SFTPTask(user).execute(listFiles[i]);
+				//				listFiles[i].delete();
+			}
+		} else {
+			Toast.makeText(this, "files folder empty",
+					Toast.LENGTH_LONG).show();
+		}		
 	}
 
 	static final int REQUEST_TAKE_PHOTO = 1;

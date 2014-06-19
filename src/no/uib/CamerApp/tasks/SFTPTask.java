@@ -4,23 +4,36 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
+import android.os.AsyncTask;
+
 import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
 
-import android.os.AsyncTask;
-
 
 public class SFTPTask extends AsyncTask<File, Void, Void> {
+
+
+
+	private String user;
+
+	public SFTPTask(String user) {
+		this.user = user;
+	}
 
 	@Override
 	protected Void doInBackground(File... params) {
 
 		try {
-			sendToServer(params[0]);
+			File file = (File) params[0];
+			if(file.length() > 0) {
+				sendToServer(params[0]);
+			}
+
 		} catch (JSchException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -32,6 +45,9 @@ public class SFTPTask extends AsyncTask<File, Void, Void> {
 			e.printStackTrace();
 		} catch (RuntimeException r) {
 			r.printStackTrace();
+		} finally {
+			File file = (File) params[0];
+			file.delete();
 		}
 		return null;
 
@@ -39,11 +55,11 @@ public class SFTPTask extends AsyncTask<File, Void, Void> {
 
 	private void sendToServer(File pictureFile) throws JSchException, SftpException, FileNotFoundException {
 
-		String SFTPHOST = "sync.uib.no";
+		String SFTPHOST = "185.35.184.206";
 		int SFTPPORT = 22;
-		String SFTPUSER = "kni054";
-		String SFTPPASS = "8OSTesaus8";
-		String SFTPWORKINGDIR = "/Home/stud3/kni054/androidTest/";
+		String SFTPUSER = "camerapp";
+		String SFTPPASS = "camerApp-2014";
+		String SFTPWORKINGDIR = "/home/camerapp/camerapp/";
 		Session session = null;
 		Channel channel = null;
 		ChannelSftp channelSftp = null;
@@ -55,17 +71,25 @@ public class SFTPTask extends AsyncTask<File, Void, Void> {
 		config.put("StrictHostKeyChecking", "no");
 		session.setConfig(config); 
 		session.connect();
+		
+		// Create folder
+		ChannelExec channelExec = (ChannelExec) session.openChannel("exec");
+		channelExec.setCommand("mkdir -p " + SFTPWORKINGDIR + user);
+        channelExec.connect();
+		
+		// SFTP
 		channel = session.openChannel("sftp");
 		channel.connect(); 
 		channelSftp = (ChannelSftp)channel;
-		channelSftp.cd(SFTPWORKINGDIR);
+		channelSftp.cd(SFTPWORKINGDIR + user);
 		//			  File f = new File(FILETOTRANSFER);
-//		System.out.println(pictureFile.getName());
+		//		System.out.println(pictureFile.getName());
+		
 		channelSftp.put(new FileInputStream(pictureFile), pictureFile.getName());
 		//		} catch(Exception ex) {
 		//			ex.printStackTrace(); 
 		//		} finally {
-
 		session.disconnect();
+		//		pictureFile.delete();
 	}
 }

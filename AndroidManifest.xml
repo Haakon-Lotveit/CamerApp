@@ -4,7 +4,8 @@
     android:versionCode="1"
     android:versionName="1.0" >
 
-    <uses-sdk android:minSdkVersion="15" />
+    <uses-sdk android:minSdkVersion="9"
+        		android:targetSdkVersion="19"/>
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -24,6 +25,12 @@
             android:name="no.uib.CamerApp.MakePhotoActivity"
             android:label="@string/app_name"
             android:screenOrientation="landscape" >
+        </activity>
+        
+        <activity
+            android:name="no.uib.CamerApp.InitActivity"
+            android:label="@string/login"
+            android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
