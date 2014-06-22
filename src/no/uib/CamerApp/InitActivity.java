@@ -32,6 +32,7 @@ public class InitActivity extends Activity {
 			setContentView(R.layout.activity_main);
 			userID = (EditText)findViewById(R.id.editText1);
 			login = (Button)findViewById(R.id.button1);
+			userID.requestFocus();
 		}
 	}
 
